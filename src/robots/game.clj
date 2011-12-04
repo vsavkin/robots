@@ -1,6 +1,5 @@
-(ns robots.game)
-
-(use 'robots.notifier)
+(ns robots.game
+  (:use (robots notifier)))
 
 (def robots (ref {}))
 (def status (ref :waiting-for-robots))
@@ -8,7 +7,10 @@
 
 (defn join-game [args]
   (dosync
-    (ref-set robots (assoc @robots (first args) {}))))
+    (ref-set robots (assoc @robots (first args) {}))
+    (if (= 1 (count @robots))
+      (def main-robot (first (keys @robots))))
+))
 
 (defn update-game-status [st]
   (dosync
@@ -35,3 +37,5 @@
 
 (defn game-is-over? []
   (= (game-status) :completed))
+
+

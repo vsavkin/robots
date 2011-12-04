@@ -1,13 +1,18 @@
-# robots
+# ROBOTS
 
-FIXME: write description
+Travis Jeffery and Victor Savkin's Clojure experiment.
 
-## Usage
+### RULES:
 
-FIXME: write
+- There is one main Robot — the robot who began the game
+- The Client ignores incorrectly formatted messages
 
-## License
+### OPERATIONS
 
-Copyright (C) 2011 FIXME
+- Move, shoot, rotate
 
-Distributed under the Eclipse Public License, the same as Clojure.
+#### SHOOTING
+
+- Shooting will kill 1 robot in same location
+- After shooting the robot then stays there, if the robot shoots in same
+  direction again that bullet will go into the same dead robot
