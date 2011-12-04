@@ -1,5 +1,7 @@
 (ns robots.game)
 
+(use 'robots.notifier)
+
 (def robots (ref {}))
 (def status (ref :waiting-for-robots))
 (def winner (ref nil))
@@ -22,7 +24,7 @@
     (= type :join-game)(join-game args)
     (= type :start-game)(update-game-status :in-progress)
     (= type :win)(run-event args)
-    :else (println "error happened")))
+    :else  (notify notifier "ERROR!")))
 
 (defn all-names []
   (keys @robots))
@@ -30,3 +32,6 @@
 (defn game-status [] @status)
 
 (defn game-winner [] @winner)
+
+(defn game-is-over? []
+  (= (game-status) :completed))

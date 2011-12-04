@@ -1,60 +1,42 @@
 (ns robots.core)
-
-(use 'com.mefesto.wabbitmq)
+(use 'robots.notifier)
 (use 'robots.server)
 (use 'robots.queue)
+(use 'robots.game)
 (import 'robots.queue.RobotsConnection)
 
-;(initialize)
-;(initialize-client "client1")
-;(initialize-client "client2")
+(def c1 (create-topic-connection {:host "localhost"} "amqp-server-to-client"))
+(def c2 (create-topic-connection {:host "localhost"} "amqp-server-to-client"))
 
-;(purge-all-queues)
+(.start (Thread. #(while true
+                    (println (read-message c1)))))
 
-;(def rc (create-server-robots-connection {:host "localhost"} "client-to-server"))
+(deftype PrintlnNotifier []
+  Notification
+  (notify [_ message]
+    (println message)))
 
-;(send-message rc "my secret message")
-;(println "after I sent a message")
-;(println (read-message rc))
-;(println "bbb")
+(def amqp-server-to-client (create-topic-connection {:host "localhost"} "amqp-server-to-client"))
 
+(deftype AMQPNotifier []
+  Notification
+  (notify [_ message]
+    (send-message amqp-server-to-client message)))
 
-;(def c (RobotsConnection. {:host "localhost"} 2 3 4))
-;
-;(println (open c))
-;(send-message c "message")
+(set-notifier (AMQPNotifier.))
 
-;(defn client-1 [message]
-;  (println (str "client 1 received " message)))
-;
-;(defn client-2 [message]
-;  (println (str "client 2 received " message)))
-;
+(def client-to-server (create-robots-connection {:host "localhost"} "client-to-server"))
 
+(send-message client-to-server "JOIN-GAME:Robot1")
+(send-message client-to-server "JOIN-GAME:Robot2")
+(send-message client-to-server "JOIN-GAME:Robot3")
+(send-message client-to-server "START-GAME")
+(send-message client-to-server "WIN:Robot2")
 
+(while (not (game-is-over?))
+  (server (read-message client-to-server)))
 
-(def c1 (create-client-connection {:host "localhost"} "boomsp"))
-(def c2 (create-client-connection {:host "localhost"} "boomsp"))
+(close-robots-connection client-to-server)
 
-(println @client-connections)
-
-(close-client-connections)
-
-;(def server- (create-robots-connection {:host "localhost"} "client-to-server"))
-
-
-;(server-send-message "hello")
-;
-;(client-register-listener "client1" client-1)
-;(client-register-listener "client2" client-2)
-
-;(send-message "JOIN-GAME:Robot1")
-;(send-message "JOIN-GAME:Robot2")
-;(send-message "JOIN-GAME:Robot3")
-;(send-message "START-GAME")
-;(send-message "WIN:Robot2")
-;
-;(register-listener server)
-;
 
 
