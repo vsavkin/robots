@@ -3,17 +3,17 @@
   (:use [clojure.test]))
 
 (testing "update-game"
-  (testing "join-game"
+  (deftest join-game-test
     (update-game :join-game ["Robot1"])
     (is (= (all-names) ["Robot1"]))
     )
 
-  (testing "start-game"
+  (deftest start-game-test
     (update-game :start-game [])
     (is (= (game-status) :in-progress))
     )
 
-  (testing "win"
+  (deftest win-test
     (update-game :win ["Robot1"])
     (is (= (game-status) :completed))
     (is (= (game-winner) "Robot1"))

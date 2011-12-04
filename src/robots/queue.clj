@@ -1,66 +1,65 @@
 (ns robots.queue)
 
 (use 'com.mefesto.wabbitmq)
+(import 'com.rabbitmq.client.ConnectionFactory)
+(import 'com.rabbitmq.client.Connection)
+(import 'com.rabbitmq.client.Channel)
+(import 'com.rabbitmq.client.QueueingConsumer)
 
-(def credentials {:host "localhost" :username "guest" :password "guest"})
-(def client-to-server-exchange "client-to-server.exchange")
-(def client-to-server-queue "client-to-server.queue")
-(def client-to-server-routing-key "client-to-server")
+(defprotocol ConnectionProtocol
+  (get-connection [this])
+  (get-channel [this])
+  (send-message [this message])
+  (read-message [this]))
 
-(def server-to-client-exchange "server-to-client.exchange")
-(def server-to-client-queue "server-to-client.queue")
-(def server-to-client-routing-key "server-to-client")
+(deftype RobotsConnection [connection channel consumer exchange-name queue-name]
+  ConnectionProtocol
 
-;(defn create-connection [exchange queue routing-key connection-type]
-;  {
-;
-;    }
-;  )
+  (get-connection [this] connection)
 
-(defn initialize []
-  (with-broker credentials
-    (with-channel
-      (exchange-declare client-to-server-exchange "direct")
-      (queue-declare client-to-server-queue)
-      (queue-bind client-to-server-queue client-to-server-exchange client-to-server-routing-key))
+  (get-channel [this] channel)
 
-    (with-channel
-      (exchange-declare server-to-client-exchange "topic")
-      (queue-declare server-to-client-queue)
-      (queue-bind server-to-client-queue server-to-client-exchange server-to-client-routing-key))
-    ))
+  (send-message [this message]
+    (.basicPublish channel exchange-name "" nil (.getBytes message)))
 
-(defn purge-all-queues []
-  (dotimes [n 100] (read-message)))
+  (read-message [message]
+    (String. (.getBody (.nextDelivery consumer))))
+ )
 
-(defn send-message [message]
-  (with-broker credentials
-    (with-channel
-      (with-exchange client-to-server-exchange
-        (publish client-to-server-routing-key (.getBytes message))))))
+(defn create-robots-connection [credentials exchange-name]
+  (let [connection (.newConnection (doto (ConnectionFactory.) (.setHost (:host credentials))))
+        channel (.createChannel connection)
+        exchange (.exchangeDeclare channel exchange-name "direct")
+        queue-name (.getQueue (.queueDeclare channel))
+        consumer (QueueingConsumer. channel)
+        ]
+    (.queueBind channel queue-name exchange-name "")
+    (.basicConsume channel queue-name true consumer)
+    (RobotsConnection. connection channel consumer exchange-name queue-name)
+    )
+  )
+
+(defn close-robots-connection [robots-connection]
+  (.close (get-channel robots-connection))
+  (.close (get-connection robots-connection)))
+
+
+(def client-connections (ref []))
+
+(defn create-client-connection [credentials exchange-name]
+  (let [cc (create-robots-connection credentials exchange-name)]
+    (dosync
+      (ref-set client-connections  (cons cc @client-connections))
+      )
+  ))
+
+(defn close-client-connections []
+  (dosync
+    (doseq [c @client-connections]
+      (println (str "closing .." c))
+      (close-robots-connection c))))
 
 (defn broadcast-message [message]
-  (with-broker credentials
-    (with-channel
-      (with-exchange server-to-client-exchange
-        (publish server-to-client-routing-key (.getBytes message))))))
-
-(defn parse-message [message]
-  (if (nil? message)
-    nil
-    (String. (:body message))))
-
-(defn read-message []
-  (with-broker credentials
-    (with-channel
-      (with-queue client-to-server-queue
-        (parse-message (first (consuming-seq true 10)))))))
-
-(defn register-listener [listener]
-  (try
-    (with-broker credentials
-      (with-channel
-        (with-queue client-to-server-queue
-          (doseq [message (consuming-seq true)]
-            (listener (parse-message message))))))
-    (catch Throwable t)))
+  (dosync
+    (doseq [c @client-connections]
+      (send-message c message))))

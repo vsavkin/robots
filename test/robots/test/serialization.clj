@@ -3,7 +3,7 @@
   (:use [clojure.test]))
 
 (testing "Serialize"
-  (testing "end of game"
+  (deftest end-of-game-test
     (is (= (serialize [:end-of-game "Robot1"]) "END-OF-GAME: Robot1"))
     ))
 
@@ -11,27 +11,27 @@
 
   (testing "join game"
 
-    (testing "parses message"
+    (deftest parses-message-test
       (is (= (deserialize "JOIN-GAME:Robot1") [:join-game "Robot1"])))
 
-    (testing "returns errors when message is invalid"
+    (deftest returns-errors-when-message-is-invalid-test
       (is (= (deserialize "JOIN-GAME:") [:error "Invalid Message: JOIN-GAME:"])))
   )
 
   (testing "start game"
-    (testing "parses message"
+    (deftest parses-message-test
       (is (= (deserialize "START-GAME") [:start-game])))
   )
 
   (testing "win"
 
-    (testing "parses message"
+    (deftest parses-message-test
       (is (= (deserialize "WIN:Robot1") [:win "Robot1"])))
 
-    (testing "returns errors when message is invalid"
+    (deftest returns-errors-when-message-is-invalid-test
       (is (= (deserialize "WIN:") [:error "Invalid Message: WIN:"])))
     )
 
-  (testing "invalid messages"
+  (deftest invalid-messages-test
     (is (= (deserialize "INVALID") [:error "Invalid Message: INVALID"])))
   )
