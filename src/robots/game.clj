@@ -1,7 +1,7 @@
 (ns robots.game
   (:use (robots notifier)))
 
-(def robots (ref {}))
+(def robots (ref []))
 (def main-robot (ref nil))
 (def status (ref :waiting-for-robots))
 (def winner (ref nil))
@@ -12,10 +12,13 @@
 
 (defn join-game [robot & args]
   (dosync
-    (ref-set robots (assoc @robots robot {}))
+    (ref-set robots (cons robot @robots))
     (if (= 1 (count @robots))
-      (ref-set main-robot (first (keys @robots))))
+      (ref-set main-robot (first @robots)))
 ))
+
+(defn generate-field []
+ [])
 
 (defn update-game-status [st]
   (dosync
@@ -34,7 +37,7 @@
     :else  (notify notifier "ERROR!")))
 
 (defn all-names []
-  (keys @robots))
+  @robots)
 
 (defn game-status [] @status)
 

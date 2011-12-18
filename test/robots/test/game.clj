@@ -3,8 +3,7 @@
   (:use [clojure.test]))
 
 (defn clean-environment []
-  
-  (dosync (ref-set robots {})
+  (dosync (ref-set robots [])
           (ref-set main-robot nil)))
 
 (deftest join-game-test
@@ -35,5 +34,6 @@
   (clean-environment)
   (update-game :join-game "Robot1")
   (update-game :start-game [])
-  
+  (is (not (= (generate-field) nil)))
+  (is (= (generate-field ) ))
   )
