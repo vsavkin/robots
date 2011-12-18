@@ -45,11 +45,22 @@
   (is (= (robot-move {:direction :south :position [0,0]} [[0,-1]]) {:position [0,0] :direction :south}))
   )
 
-
 (deftest robot-rotate-test
   (is (= (robot-rotate {:direction :north} :left) {:direction :west}))
   )
 
+(deftest robot-shoot-test
+  (is (= (robot-shoot {:direction :north, :position [0,0]} {}) nil))
+  (is (= (robot-shoot {:direction :north, :position [0,0]}
+                      {"Robot1" {:position [0,0]}}) nil))
+  (is (= (robot-shoot {:direction :north, :position [0,0]}
+                      {"Robot2" {:position [1,0]}}) nil))
+  (is (= (robot-shoot {:direction :north, :position [0,0]}
+                      {"Robot2" {:position [0,1]}}) "Robot2"))
+  (is (= (robot-shoot {:direction :north, :position [0,0]}
+                      {"Robot2" {:position [0,1]}, "Robot3" {:position [0,2]}}) "Robot2"))
+
+  )
 ;; (deftest move-test
 ;;   (clean-environment)
 ;;   (let [old-field {"Robot1" {:position [0,0] :direction :north}}

@@ -1,6 +1,8 @@
 (ns robots.game
   (:use (robots notifier)))
 
+(use 'clojure.set)
+
 (def robots (ref []))
 (def main-robot (ref nil))
 (def status (ref :waiting-for-robots))
@@ -96,6 +98,42 @@
                          )
      )
     )
+  )
+
+(defn between [value from to]
+  (and (>= value from) (<= value to))
+  )
+
+(defn robot-position-in-range [position x-range y-range]
+  (let [x (first position) y (second position)]
+    (and (between x (first x-range) (second x-range))
+     (between y (first y-range) (second y-range))
+     )))
+
+(defn select-robots [field x-range y-range]
+  (select #(robot-position-in-range ((second %) :position) x-range y-range) field))
+
+(defn closest-robot [direction robots]
+  (cond
+   (= direction :north) (first (first (min-key #(second ((second %) :position)) robots)))
+   )
+  )
+
+(defn robot-shoot-internal [attrs field]
+  (let [direction (attrs :direction)
+        x (first (attrs :position))
+        y (second (attrs :position))
+        ]
+    (cond
+     (= direction :north) (closest-robot direction (select-robots field [x x] [(+ 1 y) 1000000]))
+     
+     )
+    )
+  )
+
+(defn robot-shoot [attrs field]
+  (println (robot-shoot-internal attrs field))
+  (robot-shoot-internal attrs field)
   )
 
  (defn game-move [old-field robot-name operation]
