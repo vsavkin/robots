@@ -30,10 +30,21 @@
   (is (= (game-winner) "Robot1"))
   )
 
-(deftest location-test
+(deftest generate-position-test
+  (is (= (count (generate-position [])) 2))
+  (is (not (= (generate-position [[0,0]]) [0,0])))
+  )
+
+(deftest generate-field-test
   (clean-environment)
   (update-game :join-game "Robot1")
+  (update-game :join-game "Robot2")
   (update-game :start-game [])
-  (is (not (= (generate-field) nil)))
-  (is (= (generate-field ) ))
+  (let [field (generate-field (all-names))]
+    (is (= (count field) 2))
+    (is (= (:status (field "Robot1")) :alive))
+    (is (= (:status (field "Robot2")) :alive))
+    (is (not (= (:position (field "Robot1")) nil)))
+    (is (not (= (:position (field "Robot2")) nil)))
+    )
   )

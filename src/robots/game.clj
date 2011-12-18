@@ -17,8 +17,26 @@
       (ref-set main-robot (first @robots)))
 ))
 
-(defn generate-field []
- [])
+(defn generate-position [positions]
+  (let [
+        field-size (+ 2 (count positions))
+        x (rand-int field-size)
+        y (rand-int field-size)
+        ]
+    
+    (if (some #(= [x,y] %) positions)
+      (generate-position positions)
+      [x, y])))
+
+(defn generate-field-element [field robot]
+  (let [all-positions (map :position field)]
+   (assoc field robot {:status :alive
+                       :position (generate-position all-positions)
+                       })))
+
+(defn generate-field [robots]
+  (reduce generate-field-element {} robots)
+  )
 
 (defn update-game-status [st]
   (dosync
