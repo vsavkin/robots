@@ -2,14 +2,19 @@
   (:use (robots notifier)))
 
 (def robots (ref {}))
+(def main-robot (ref nil))
 (def status (ref :waiting-for-robots))
 (def winner (ref nil))
 
-(defn join-game [args]
+(defn main-robot-name []
+  @main-robot
+  )
+
+(defn join-game [robot & args]
   (dosync
-    (ref-set robots (assoc @robots (first args) {}))
+    (ref-set robots (assoc @robots robot {}))
     (if (= 1 (count @robots))
-      (def main-robot (first (keys @robots))))
+      (ref-set main-robot (first (keys @robots))))
 ))
 
 (defn update-game-status [st]
