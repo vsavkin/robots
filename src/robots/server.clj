@@ -6,11 +6,10 @@
 
 (defn print-game-status []
   (cond
-    (= (game-status) :in-progress)(notify notifier "game is in progress")
+    (= (game-status) :in-progress) (notify notifier (serialize :update-game (game-field)))
     (= (game-status) :completed)(notify notifier (str "winner is " (game-winner)))
     )
   )
-
 
 (defn tick [type args]
   (do

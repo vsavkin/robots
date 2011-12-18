@@ -2,9 +2,17 @@
 
 (use 'clojure.contrib.string)
 
+(defn serialize-robot [[robot-name attrs]]
+  (join "," [robot-name (name (attrs :status)) (first (attrs :position)) (second (attrs :position))])
+  )
+
+(defn serialize-robots [field]
+  (join ";" (map serialize-robot field)))
+
 (defn serialize [[type & args]]
   (cond
     (= type :end-of-game ) (str "END-OF-GAME: " (first args))
+    (= type :update-game) (str "FIELD:" (serialize-robots (first args)))
     :else "BOOM"))
 
 (defn construct-error [message]

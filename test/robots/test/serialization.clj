@@ -5,7 +5,15 @@
 (testing "Serialize"
   (deftest end-of-game-test
     (is (= (serialize [:end-of-game "Robot1"]) "END-OF-GAME: Robot1"))
-    ))
+    )
+
+  (deftest update-test
+    (let [field {"Robot1" {:position [0,0] :status :alive}
+                 "Robot2" {:position [0,1] :status :alive}}]
+      (is (= (serialize [:update-game field]) "FIELD:Robot1,alive,0,0;Robot2,alive,0,1"))
+      )
+    )
+  )
 
 (testing "Deserialize"
 
